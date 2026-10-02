@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pyo
+temp_*/
+chrome_*_profile/
+*.log
