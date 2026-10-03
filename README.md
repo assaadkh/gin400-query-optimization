@@ -1,53 +1,81 @@
-# ⚡ Query Optimization Interactive Masterclass & Video (GIN400 / GIN540)
+# ⚡ Advanced Database Systems Masterclass Portal (GIN400 / GIN540)
 
-An interactive, animated masterclass on **Database Query Optimization** (Chapter 2: Query Processing & Optimization) with AI studio narration, real-time $\KaTeX$ formulas, synchronized voice spotlighting, draggable word-by-word karaoke subtitles, and standalone 1080p/720p broadcast MP4 export.
-
----
-
-## 🌐 Live Hosted Web Player
-👉 **Access the interactive masterclass online:**
-**[https://assaadkh.github.io/gin400-query-optimization/](https://assaadkh.github.io/gin400-query-optimization/)**
-
-*Works on all modern desktop and mobile browsers with zero installation required.*
+An interactive, high-definition animated masterclass portal for **Advanced Database Systems** (Prof. Joseph Zalaket), featuring neural AI studio narration, real-time $\KaTeX$ formulas, 60fps dynamic canvas visualizations, word-by-word draggable karaoke subtitles, interactive cost sandboxes, and exam problem sheets with step-by-step worked mathematical proofs.
 
 ---
 
-## 🎬 Standalone MP4 Download
-- **Full Video:** [`query_optimization_masterclass.mp4`](query_optimization_masterclass.mp4)
-- **Duration:** 5 minutes 20 seconds
-- **Format:** H.264 / AAC 192k (1280×720 HD)
-- **Features:** Studio Copilot narration, baked-in karaoke subtitles, dynamic voice spotlighting, and active $\KaTeX$ cost formulas.
+## 🌐 Live Hosted Web Portal (GitHub Pages)
+👉 **Launch the master course portal online for free:**  
+### **[https://assaadkh.github.io/gin400-query-optimization/](https://assaadkh.github.io/gin400-query-optimization/)**
+
+*Works on all modern desktop and mobile browsers with zero setup or backend installation required.*
 
 ---
 
-## 📚 Course Curriculum & Scenes
+## 🏛️ Course Structure & Chapters
 
-| Scene | Topic | Key Concepts | Cost Model / Formula |
-|:---:|:---|:---|:---|
-| **1** | **Query Processing Architecture** | Declarative SQL $\to$ Relational Algebra $\to$ Physical Plan $\to$ Engine | $\mathcal{O}(\text{Cost}) = \text{Est(Disk I/O)} + \text{Est(CPU)}$ |
-| **2** | **Catalog Statistics & Selectivity** | $r$, $b$, $bfr$, $V(A, R)$, Selectivity $sl$, Linear vs Binary Search | $sl = \frac{1}{V(A,R)}$, $\text{Cost}(A_1) = \lceil b/2 \rceil$, $\text{Cost}(A_2) = b$ |
-| **3** | **Index Selection Algorithms** | Primary Key ($A_3$), Primary Non-Key ($A_4$), Secondary ($A_5, A_6$) | $A_3 = HT + 1$, $A_4 = HT + b$, $A_5 = HT + 1$ |
-| **4** | **Join Algorithms: Nested-Loop & Hash** | Simple Nested-Loop, Block Nested-Loop with $B$ buffers, Hash Join | $b_R + b_R \cdot b_S$ vs $b_R + \lceil \frac{b_R}{B-2} \rceil \cdot b_S$ |
-| **5** | **Sort-Merge Join Deep Dive** | Sort Phase + Merge Scan Phase, Memory buffer constraints | $\text{Cost} = 3(b_R + b_S)$ |
-| **6** | **Relational Algebra Equivalences** | Commutativity, Associativity, Heuristic Selection/Projection Pushdown | $\sigma_\theta(R \bowtie S) \equiv (\sigma_\theta(R)) \bowtie S$ |
-| **7** | **Cost Estimation & Plan Search Space** | Left-deep trees, Dynamic Programming, Catalan combinatorial explosion | $N = \frac{(2n)!}{n!}$, DP complexity $\mathcal{O}(3^n)$ |
-| **8** | **Mathematical Reference & Proofs** | Rigorous proofs for $A_1 \to A_6$, blocking factors, and joins | $b = \lceil r / bfr \rceil$, $V(A, R) = |\pi_A(R)|$ |
-| **9** | **Exam Checklist & Mastery Matrix** | Core exam takeaway matrix and algorithm decision flowchart | Complete exam review checklist |
+### 💾 [Chapter 1: Physical Database Storage & Indexing](chapter1.html)
+- **Live Player:** [`chapter1.html`](chapter1.html)
+- **Slides PDF:** [`GIN-ADB-Chap1.pdf`](GIN-ADB-Chap1.pdf)
+- **Problem Sheet:** [`exercises/Chap1_Exercises.md`](exercises/Chap1_Exercises.md)
+- **Step-by-Step Worked Solutions:** [`exercises/Chap1_Solutions.md`](exercises/Chap1_Solutions.md)
+- **Curriculum:**
+  1. **Physical Storage Hierarchy & Disk Geometry**: Platters, cylinders, tracks, sectors, address $(\text{Surface}, \text{Track}, \text{Sector})$, seek/rotational/transfer latency $T = s + \frac{r}{2} + \frac{b}{t}$, double buffering, and RAID striping.
+  2. **Record Organization, Blocking Factor & Spanning**: $bfr = \lfloor B/R \rfloor$, blocks $b = \lceil r/bfr \rceil$, unspanned internal fragmentation $B \pmod R$ vs spanned continuation pointers, heap ($b/2$) vs binary scan ($\lceil \log_2 b \rceil$).
+  3. **Single-Level Indexes (Primary, Clustering, Secondary)**: Primary index (anchor key, sparse, $\lceil \log_2 b_I \rceil + 1$), Clustering index (ordering non-key, distinct values $d$), Secondary index (candidate key dense vs indirection pointer buckets).
+  4. **Multi-Level Balanced Indexing & B+ Trees**: Fanout $fo = bfr_I$, height $x = \lceil \log_{fo}(b_{i1}) \rceil + 1$, B-Tree vs B+-Tree (pushing data pointers exclusively to leaves, doubly linked leaf chain for range scans).
+  5. **Static vs Dynamic Extendable Hashing**: Static collision overflow chains vs Extendable Hashing (directory size $2^d$, global depth $d$, local depth $d'$, bucket splits vs directory doubling when $d'=d$).
+  6. **Bitmap Indexing & Multi-Attribute Bitwise Engine**: Low-cardinality vectors, in-register bitwise `AND`, `OR`, `NOT`, and `POPCNT` counting without disk block reads.
 
 ---
 
-## ✨ Features
-1. **Studio Copilot Narration**: Mastered neural voice (`en-US-AndrewMultilingualNeural`, 128 kbps 44.1 kHz).
-2. **Synchronized Visual Spotlights**: Elements on the diagrams glow and pulse in real time as the narration explains them.
+### ⚡ [Chapter 2: Query Processing & Optimization](chapter2.html)
+- **Live Player:** [`chapter2.html`](chapter2.html)
+- **Slides PDF:** [`GIN-ADB-Chap2.pdf`](GIN-ADB-Chap2.pdf)
+- **Problem Sheet:** [`exercises/Chap2_Exercises.md`](exercises/Chap2_Exercises.md)
+- **Step-by-Step Worked Solutions:** [`exercises/Chap2_Solutions.md`](exercises/Chap2_Solutions.md)
+- **Standalone Broadcast MP4:** [`query_optimization_masterclass.mp4`](query_optimization_masterclass.mp4) (H.264 / AAC 192k 720p HD, 5m 20s)
+- **Curriculum:**
+  1. **Query Processing Architecture**: Declarative SQL $\to$ Relational Algebra $\to$ Physical Operator Tree $\to$ Execution Engine.
+  2. **Catalog Statistics & Selectivity**: $r, R, b, bfr, V(A, R)$, selectivity $sl$, linear scan vs binary search.
+  3. **Index Selection Algorithms (A1–A6)**: Primary key equality ($HT+1$), clustering range scan, secondary index equality and range costs.
+  4. **Join Algorithms (Nested-Loop & Hash)**: Simple nested-loop, block nested-loop with $B$ buffers, Grace/partition hash join.
+  5. **Sort-Merge Join Deep Dive**: External sort-merge phases, buffer allocation, $3(b_R + b_S)$ cost.
+  6. **Relational Algebra Equivalences**: Selection/projection pushdown, join commutativity and associativity.
+  7. **Cost Estimation & Plan Search Space**: Left-deep trees, Dynamic Programming $\mathcal{O}(3^n)$, Catalan combinatorial explosion.
+  8. **Mathematical Reference & Proofs**: Complete proofs for selection algorithms, blocking factors, and joins.
+  9. **Exam Checklist & Mastery Matrix**: Algorithm decision flowchart and exam review checklist.
+
+---
+
+## ✨ Interactive Features
+1. **Studio Copilot Narration**: Mastered neural audio (`en-US-AndrewMultilingualNeural`) embedded directly as base64 data URIs for 100% offline static CDN playback.
+2. **Synchronized 60fps Visual Spotlights**: Elements on the diagrams glow and pulse in real time as the narration explains them.
 3. **Word-by-Word Karaoke Subtitles**: Frame-accurate word highlighting with freely draggable on-screen CC box.
-4. **Interactive Formula HUD & Sandbox**: Live $\KaTeX$ typesetting with interactive Sort-Merge parameter sandbox.
-5. **1-Click Native MP4 Video Export**: Directly records and saves broadcast MP4 video from within the browser.
+4. **Interactive Formula HUD & Sandboxes**:
+   - Chapter 1: Disk Latency & Transfer Calculator, Blocking Factor & B+ Tree Height Calculator, Extendable Hashing Simulator.
+   - Chapter 2: External Sort-Merge Simulator and Join Algorithms Showdown.
+5. **1-Click Native MP4 Video Export**: Directly records and saves broadcast MP4/WebM videos from within the browser via MediaRecorder API.
 
 ---
 
-## 🛠️ Offline Build Script
-To re-render the standalone `.mp4` video from scratch:
-```bash
-python build_mp4_video.py
+## 📁 Repository Structure
 ```
-*Requires Google Chrome and FFmpeg.*
+gin400-query-optimization/
+├── index.html                           # Master Course Portal (Landing Page)
+├── chapter1.html                        # Chapter 1 Standalone Interactive Player (3.3 MB)
+├── chapter2.html                        # Chapter 2 Standalone Interactive Player (7.3 MB)
+├── query_optimization_video.html        # Original Chapter 2 Player
+├── query_optimization_masterclass.mp4   # Broadcast 720p Standalone MP4
+├── GIN-ADB-Chap1.pdf                    # Chapter 1 Course Slides
+├── GIN-ADB-Chap2.pdf                    # Chapter 2 Course Slides
+├── exercises/
+│   ├── Chap1_Exercises.md               # Chapter 1 Exam Problems
+│   ├── Chap1_Solutions.md               # Chapter 1 Mathematical Step-by-Step Proofs
+│   ├── Chap2_Exercises.md               # Chapter 2 Exam Problems
+│   └── Chap2_Solutions.md               # Chapter 2 Mathematical Step-by-Step Proofs
+├── audio/                               # Generated Raw MP3 Audio Tracks
+├── build_chapter1_data.py               # Edge-TTS Audio & Karaoke Alignment Generator
+├── build_chapter1_html.py               # Chapter 1 Standalone Player Builder
+└── README.md
+```
