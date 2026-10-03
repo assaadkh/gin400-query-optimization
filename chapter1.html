@@ -540,6 +540,21 @@
       ctx.stroke();
     }
 
+    // Helper functions for geometric disk structures
+    function drawAnnularSector(ctx, cx, cy, rIn, rOut, a1, a2) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, rOut, a1, a2, false);
+      ctx.arc(cx, cy, rIn, a2, a1, true);
+      ctx.closePath();
+    }
+
+    function drawWedge(ctx, cx, cy, r, a1, a2) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, a1, a2, false);
+      ctx.closePath();
+    }
+
     // 6 Masterclass Scenes for Chapter 1
     const scenes = [
       {
@@ -547,205 +562,415 @@
         title: "1. Physical Storage Hierarchy & Disk Geometry",
         duration: AUDIO_DURATIONS[0],
         icon: "💽",
-        summary: "Magnetic disk pack architecture: rotating platters, concentric tracks, cylinder alignment, and sector subdivisions. Physical block addressing via $(\\text{Surface}, \\text{Track}, \\text{Sector})$. Mechanical delay breakdown: Seek Time $s$, Rotational Latency $r/2$, and Transfer Time $b/t$. Double buffering and RAID striping concurrency.",
+        summary: "Magnetic disk pack architecture: rotating platters, concentric circles called tracks, and subdivisions into fixed-size arcs called sectors. Geometric disk structures: (A) Track, (B) Geometrical sector, (C) Track sector, and (D) Cluster. Physical addressing via $(\\text{Surface}, \\text{Track}, \\text{Sector})$. Mechanical delay breakdown: Seek Time $s$, Rotational Latency $r/2$, and Transfer Time $b/t$. Double buffering and RAID striping concurrency.",
         hudCost: "\\text{Address} = (\\text{Surface}, \\text{Track}, \\text{Sector})",
         audioUri: AUDIO_TRACKS[0],
         render: (ctx, t, w, h) => {
           ctx.clearRect(0, 0, w, h);
           drawBackgroundGrid(ctx, w, h);
 
-          // Left Half: Animated Spinning Magnetic Platter & Actuator Arm
-          const cx = 340;
-          const cy = h / 2 + 10;
-          const maxR = 190;
+          // Left Half: Animated Spinning Magnetic Platter & Structures
+          const cx = 330;
+          const cy = 275;
+          const maxR = 195;
 
-          // Platter Base Shadow & Rim
+          // Platter Base Shadow & Outer Rim
           ctx.save();
           ctx.shadowColor = "rgba(6, 182, 212, 0.35)";
-          ctx.shadowBlur = 30;
+          ctx.shadowBlur = 25;
           ctx.fillStyle = "#082f49";
           ctx.beginPath();
-          ctx.arc(cx, cy, maxR + 10, 0, Math.PI * 2);
+          ctx.arc(cx, cy, maxR + 8, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
 
-          // Concentric Tracks (Outer, Middle, Inner)
-          const trackRadii = [maxR, maxR * 0.78, maxR * 0.56, maxR * 0.34];
-          const trackColors = ["#0284c7", "#0ea5e9", "#38bdf8", "#7dd3fc"];
+          // 4 Concentric Tracks Definitions (Radii)
+          const tracks = [
+            { id: 0, rIn: 160, rOut: 195, name: "Track 0 (Outer)" },
+            { id: 1, rIn: 125, rOut: 160, name: "Track 1 (Middle-Outer)" },
+            { id: 2, rIn: 90,  rOut: 125, name: "Track 2 (Middle-Inner)" },
+            { id: 3, rIn: 52,  rOut: 90,  name: "Track 3 (Inner)" }
+          ];
 
-          trackRadii.forEach((r, idx) => {
-            ctx.strokeStyle = trackColors[idx];
-            ctx.lineWidth = 2.5;
+          // Alternating concentric track bands
+          tracks.forEach((tr, i) => {
+            ctx.fillStyle = (i % 2 === 0) ? "#0a2540" : "#06182a";
+            drawAnnularSector(ctx, cx, cy, tr.rIn, tr.rOut, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crisp concentric track boundary circles
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+            ctx.lineWidth = 1.2;
             ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.arc(cx, cy, tr.rOut, 0, Math.PI * 2);
             ctx.stroke();
           });
 
-          // Spinning Sectors (8 Slices)
-          const rotAngle = t * 1.8;
+          // Platter continuous rotation
+          const rotAngle = t * 1.4;
+
+          // 12 Radial Sector Subdivision Lines (each 30 degrees = PI/6)
+          const numSectors = 12;
+          const arcStep = (Math.PI * 2) / numSectors;
+
           ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(rotAngle);
-
-          for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI) / 4;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
-            ctx.lineWidth = 1.5;
+          for (let i = 0; i < numSectors; i++) {
+            const angle = rotAngle + i * arcStep;
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(Math.cos(angle) * maxR, Math.sin(angle) * maxR);
+            ctx.moveTo(cx + Math.cos(angle) * 38, cy + Math.sin(angle) * 38);
+            ctx.lineTo(cx + Math.cos(angle) * maxR, cy + Math.sin(angle) * maxR);
             ctx.stroke();
-
-            // Highlight target sector with neon glow
-            if (i === 2) {
-              ctx.fillStyle = "rgba(6, 182, 212, 0.3)";
-              ctx.beginPath();
-              ctx.moveTo(0, 0);
-              ctx.arc(0, 0, maxR * 0.78, angle, angle + Math.PI / 4);
-              ctx.closePath();
-              ctx.fill();
-            }
           }
-
-          // Center Spindle
-          ctx.fillStyle = "#1e293b";
-          ctx.strokeStyle = "#06b6d4";
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.arc(0, 0, 36, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.fillStyle = "#e2e8f0";
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("SPINDLE", 0, 4);
           ctx.restore();
 
+          // ========================================================
+          // THE 4 TEXTBOOK DISK STRUCTURES
+          // ========================================================
+
+          // (B) Geometrical Sector: Entire Radial Wedge from Spindle to Rim
+          const wedgeStart = rotAngle + 5 * arcStep;
+          const wedgeEnd = wedgeStart + arcStep;
+          drawWedge(ctx, cx, cy, maxR, wedgeStart, wedgeEnd);
+          ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
+          ctx.fill();
+          ctx.strokeStyle = "#c084fc";
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          // Wedge Callout Label
+          const wedgeMidAngle = wedgeStart + arcStep / 2;
+          const wLabelX = cx + Math.cos(wedgeMidAngle) * (maxR + 25);
+          const wLabelY = cy + Math.sin(wedgeMidAngle) * (maxR + 25);
+          ctx.fillStyle = "#c084fc";
+          ctx.font = "bold 11px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("(B) Geometrical Sector", wLabelX, wLabelY);
+          ctx.font = "9px sans-serif";
+          ctx.fillStyle = "#e9d5ff";
+          ctx.fillText("[Radial Wedge]", wLabelX, wLabelY + 12);
+
+          // (A) Concentric Circle (Track 1)
+          const isTrackSpeech = (t >= 19.5 && t < 21.7);
+          drawAnnularSector(ctx, cx, cy, tracks[1].rIn, tracks[1].rOut, 0, Math.PI * 2);
+          ctx.fillStyle = isTrackSpeech ? "rgba(6, 182, 212, 0.38)" : "rgba(6, 182, 212, 0.18)";
+          ctx.fill();
+          ctx.strokeStyle = isTrackSpeech ? "#38bdf8" : "rgba(6, 182, 212, 0.7)";
+          ctx.lineWidth = isTrackSpeech ? 3 : 2;
+          ctx.stroke();
+
+          // (D) Cluster: 2 Consecutive Sector Arcs on Track 0
+          const clusStart = rotAngle + 2 * arcStep;
+          const clusEnd = clusStart + 2 * arcStep;
+          drawAnnularSector(ctx, cx, cy, tracks[0].rIn, tracks[0].rOut, clusStart, clusEnd);
+          ctx.fillStyle = "rgba(16, 185, 129, 0.35)";
+          ctx.fill();
+          ctx.strokeStyle = "#34d399";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // (C) Track Sector: THE FIXED-SIZE ARC (Physical Block: 512B / 4KB)
+          // Located on Track 1, at rotation index 0 (directly rotating under read/write head)
+          const targetArcStart = rotAngle;
+          const targetArcEnd = rotAngle + arcStep;
+          drawAnnularSector(ctx, cx, cy, tracks[1].rIn, tracks[1].rOut, targetArcStart, targetArcEnd);
+
+          const isArcSpeech = (t >= 21.7 && t < 25.0);
+          ctx.save();
+          const arcGlow = (isArcSpeech ? 24 : 14) + 6 * Math.sin(t * 8);
+          ctx.shadowColor = "#facc15";
+          ctx.shadowBlur = arcGlow;
+          ctx.fillStyle = isArcSpeech ? "rgba(250, 204, 21, 0.55)" : "rgba(250, 204, 21, 0.38)";
+          ctx.fill();
+          ctx.strokeStyle = "#facc15";
+          ctx.lineWidth = isArcSpeech ? 4 : 3;
+          ctx.stroke();
+          ctx.restore();
+
+          // Animated binary bits inside the fixed-size arc
+          const arcMidR = (tracks[1].rIn + tracks[1].rOut) / 2;
+          const arcMidA = (targetArcStart + targetArcEnd) / 2;
+          const arcMidX = cx + Math.cos(arcMidA) * arcMidR;
+          const arcMidY = cy + Math.sin(arcMidA) * arcMidR;
+
+          ctx.save();
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 11px monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("4KB BLOCK", arcMidX, arcMidY);
+          ctx.restore();
+
+          // Prominent Callout Pointer to the Fixed-Size Arc (C)
+          ctx.save();
+          const calloutStartX = cx + Math.cos(arcMidA) * (tracks[1].rOut + 5);
+          const calloutStartY = cy + Math.sin(arcMidA) * (tracks[1].rOut + 5);
+          const calloutBoxX = 35;
+          const calloutBoxY = 40;
+
+          // Glowing Pointer Line to Arc
+          ctx.strokeStyle = "#facc15";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(calloutStartX, calloutStartY);
+          ctx.lineTo(calloutBoxX + 160, calloutBoxY + 45);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Pointer Dot
+          ctx.fillStyle = "#facc15";
+          ctx.beginPath();
+          ctx.arc(calloutStartX, calloutStartY, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Callout Badge Box
+          ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
+          ctx.strokeStyle = "#facc15";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(calloutBoxX, calloutBoxY, 275, 52, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#facc15";
+          ctx.font = "bold 12px sans-serif";
+          ctx.textAlign = "left";
+          ctx.fillText("⭐ (C) Track Sector (Fixed-Size Arc)", calloutBoxX + 12, calloutBoxY + 22);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "11px monospace";
+          ctx.fillText("Subdivided Arc = 1 Block (4KB)", calloutBoxX + 12, calloutBoxY + 40);
+          ctx.restore();
+
+          // Spindle Hub at Center
+          ctx.fillStyle = "#0f172a";
+          ctx.strokeStyle = "#00f0ff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 38, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("SPINDLE", cx, cy + 3);
+
           // Movable Actuator Arm & Read/Write Head
-          const armAngle = -0.35 + 0.18 * Math.sin(t * 1.2);
-          const pivotX = 110;
-          const pivotY = cy - 140;
-          const armLen = 270;
+          const pivotX = 75;
+          const pivotY = 150;
+          const armAngle = -0.32 + 0.16 * Math.sin(t * 1.1);
+          const armLen = 265;
           const headX = pivotX + Math.cos(armAngle) * armLen;
           const headY = pivotY + Math.sin(armAngle) * armLen;
 
           // Arm body
           ctx.strokeStyle = "#94a3b8";
-          ctx.lineWidth = 6;
+          ctx.lineWidth = 5;
           ctx.beginPath();
           ctx.moveTo(pivotX, pivotY);
           ctx.lineTo(headX, headY);
           ctx.stroke();
 
-          // Actuator Pivot
+          // Pivot base
           ctx.fillStyle = "#334155";
           ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 2.5;
           ctx.beginPath();
-          ctx.arc(pivotX, pivotY, 20, 0, Math.PI * 2);
+          ctx.arc(pivotX, pivotY, 18, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
           ctx.fillStyle = "#38bdf8";
-          ctx.font = "bold 9px monospace";
+          ctx.font = "bold 8px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("PIVOT", pivotX, pivotY + 3);
+          ctx.fillText("ARM", pivotX, pivotY + 3);
 
-          // Head with Spark / Read Beam
+          // Head read spark
           ctx.fillStyle = "#f59e0b";
           ctx.shadowColor = "#f59e0b";
-          ctx.shadowBlur = 15;
+          ctx.shadowBlur = 12;
           ctx.beginPath();
-          ctx.arc(headX, headY, 9, 0, Math.PI * 2);
+          ctx.arc(headX, headY, 8, 0, Math.PI * 2);
           ctx.fill();
           ctx.shadowBlur = 0;
 
-          // Track label
-          ctx.fillStyle = "#7dd3fc";
-          ctx.font = "bold 12px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("CYLINDER / TRACKS", cx, cy + maxR + 32);
+          // ========================================================
+          // STRUCTURE REFERENCE GUIDE CARDS (Bottom Left)
+          // ========================================================
+          const guideY = 505;
+          const gCardW = 142;
+          const gCardH = 170;
 
-          // Right Half: Architectural Breakdown & Latency HUD Cards
+          const gCards = [
+            {
+              id: "(A) Track",
+              title: "Concentric Circle",
+              desc: "Circular ring at radius r. Platter surface has thousands of tracks.",
+              col: "#38bdf8",
+              bg: "#0c2847",
+              active: isTrackSpeech
+            },
+            {
+              id: "(B) Geometrical",
+              title: "Radial Wedge",
+              desc: "Pie slice radiating from center spindle to outer disk rim.",
+              col: "#c084fc",
+              bg: "#3b0764",
+              active: false
+            },
+            {
+              id: "(C) Track Sector",
+              title: "Fixed-Size Arc",
+              desc: "Fixed-size curved arc on track = 1 Physical Data Block (512B / 4KB).",
+              col: "#facc15",
+              bg: "#451a03",
+              active: isArcSpeech
+            },
+            {
+              id: "(D) Cluster",
+              title: "Group of Arcs",
+              desc: "Contiguous group of consecutive sectors on same track.",
+              col: "#34d399",
+              bg: "#064e3b",
+              active: false
+            }
+          ];
+
+          gCards.forEach((gc, idx) => {
+            const gx = 35 + idx * (gCardW + 10);
+            ctx.fillStyle = gc.active ? gc.bg : "#0f172a";
+            ctx.strokeStyle = gc.active ? gc.col : "#334155";
+            ctx.lineWidth = gc.active ? 2.5 : 1.2;
+            ctx.beginPath();
+            ctx.roundRect(gx, guideY, gCardW, gCardH, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = gc.col;
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(gc.id, gx + 10, guideY + 24);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 10px monospace";
+            ctx.fillText(gc.title, gx + 10, guideY + 42);
+
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "10px sans-serif";
+            const words = gc.desc.split(" ");
+            let line = "";
+            let lY = guideY + 64;
+            for (let w of words) {
+              const testLine = line + w + " ";
+              if (ctx.measureText(testLine).width > gCardW - 20) {
+                ctx.fillText(line, gx + 10, lY);
+                line = w + " ";
+                lY += 15;
+              } else {
+                line = testLine;
+              }
+            }
+            if (line) ctx.fillText(line, gx + 10, lY);
+          });
+
+          // ========================================================
+          // RIGHT HALF: ARCHITECTURAL CARDS & CLEAR LAYOUT
+          // ========================================================
           const rx = 650;
           const rw = 570;
 
-          // Card 1: 3-Part Address
+          // Card 1: 3-Part Physical Block Addressing
           ctx.fillStyle = "#0f172a";
           ctx.strokeStyle = "#0284c7";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.roundRect(rx, 40, rw, 100, 12);
+          ctx.roundRect(rx, 35, rw, 95, 12);
           ctx.fill();
           ctx.stroke();
 
           ctx.fillStyle = "#38bdf8";
           ctx.font = "bold 14px sans-serif";
           ctx.textAlign = "left";
-          ctx.fillText("1. Physical Disk Block Addressing", rx + 20, 70);
+          ctx.fillText("1. Physical Disk Block Addressing", rx + 20, 62);
 
           ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 18px monospace";
-          ctx.fillText("Address = ( Surface #, Track #, Sector # )", rx + 20, 105);
+          ctx.font = "bold 17px monospace";
+          ctx.fillText("Address = ( Surface #, Track #, Sector # )", rx + 20, 92);
 
           ctx.fillStyle = "#94a3b8";
-          ctx.font = "12px sans-serif";
-          ctx.fillText("Cylinder = all tracks at identical radius across all recording surfaces.", rx + 20, 128);
+          ctx.font = "11px sans-serif";
+          ctx.fillText("Cylinder = imaginary collection of all tracks at identical radius across all surfaces.", rx + 20, 114);
 
-          // Card 2: Latency Formula Components
+          // Card 2: Physical Access Time Breakdown (SPACIOUS & ZERO OVERLAP)
           ctx.fillStyle = "#0f172a";
           ctx.strokeStyle = "#38bdf8";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.roundRect(rx, 160, rw, 270, 12);
+          ctx.roundRect(rx, 142, rw, 300, 12);
           ctx.fill();
           ctx.stroke();
 
           ctx.fillStyle = "#facc15";
           ctx.font = "bold 15px sans-serif";
-          ctx.fillText("2. Physical Access Time Breakdown", rx + 20, 190);
+          ctx.fillText("2. Physical Access Time Breakdown", rx + 20, 170);
 
-          const latencies = [
-            { name: "Seek Time (s)", val: "2 - 10 ms", desc: "Mechanical arm motion to position head on target cylinder", col: "#f87171" },
-            { name: "Rotational Delay (r/2)", val: "2 - 6 ms", desc: "Platter spin time until target sector reaches head (60000 / (2 * RPM))", col: "#fbbf24" },
-            { name: "Transfer Time (b/t)", val: "0.02 - 0.1 ms", desc: "Electronic bit transfer off magnetic surface (Block Size / Transfer Rate)", col: "#34d399" }
-          ];
+          // 1. Seek Time
+          ctx.fillStyle = "#f87171";
+          ctx.font = "bold 13px monospace";
+          ctx.fillText("Seek Time (s): 2 - 10 ms", rx + 20, 198);
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "11px sans-serif";
+          ctx.fillText("Mechanical arm motion to position head on target cylinder", rx + 20, 215);
 
-          latencies.forEach((lat, idx) => {
-            const ly = 225 + idx * 60;
-            ctx.fillStyle = lat.col;
-            ctx.font = "bold 13px monospace";
-            ctx.fillText(lat.name + ": " + lat.val, rx + 20, ly);
-            ctx.fillStyle = "#cbd5e1";
-            ctx.font = "11px sans-serif";
-            ctx.fillText(lat.desc, rx + 20, ly + 20);
-          });
+          // 2. Rotational Delay
+          ctx.fillStyle = "#fbbf24";
+          ctx.font = "bold 13px monospace";
+          ctx.fillText("Rotational Delay (r/2): 2 - 6 ms", rx + 20, 240);
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "11px sans-serif";
+          ctx.fillText("Platter spin time until target sector rotates underneath head (60,000 / (2 × RPM))", rx + 20, 257);
 
-          // Formula box inside Card 2
+          // 3. Transfer Time
+          ctx.fillStyle = "#34d399";
+          ctx.font = "bold 13px monospace";
+          ctx.fillText("Transfer Time (b/t): 0.02 - 0.1 ms", rx + 20, 282);
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "11px sans-serif";
+          ctx.fillText("Electronic bit transfer off magnetic surface (Block Size / Transfer Rate)", rx + 20, 299);
+
+          // Total Latency Formula Box (Comfortably Spaced with 26px Clearance)
           ctx.fillStyle = "#020617";
           ctx.strokeStyle = "#facc15";
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.roundRect(rx + 20, 360, rw - 40, 50, 8);
+          ctx.roundRect(rx + 20, 325, rw - 40, 48, 8);
           ctx.fill();
           ctx.stroke();
+
           ctx.fillStyle = "#fde047";
           ctx.font = "bold 15px serif";
           ctx.textAlign = "center";
-          ctx.fillText("Total Latency:  T = s + (r / 2) + (b / t)", rx + rw / 2, 390);
+          ctx.fillText("Total Latency:  T = s + (r / 2) + (b / t)", rx + rw / 2, 355);
 
-          // Card 3: Double Buffering & RAID Striping
+          // SSD Benchmark Note
+          ctx.textAlign = "left";
+          ctx.fillStyle = "#38bdf8";
+          ctx.font = "11px sans-serif";
+          ctx.fillText("⚡ Solid State Drive (SSD) comparison: ~0.1 ms latency (100x faster, zero mechanical seek/delay)", rx + 20, 400);
+          ctx.fillText("   Random disk I/O is the dominant performance bottleneck in database query processing.", rx + 20, 420);
+
+          // Card 3: Double Buffering & RAID Striping Concurrency
           ctx.fillStyle = "#0f172a";
           ctx.strokeStyle = "#10b981";
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.roundRect(rx, 450, rw, 210, 12);
+          ctx.roundRect(rx, 455, rw, 220, 12);
           ctx.fill();
           ctx.stroke();
 
           ctx.fillStyle = "#34d399";
           ctx.font = "bold 14px sans-serif";
-          ctx.textAlign = "left";
-          ctx.fillText("3. I/O Acceleration: Double Buffering & RAID Striping", rx + 20, 480);
+          ctx.fillText("3. I/O Acceleration: Double Buffering & RAID Striping", rx + 20, 482);
 
           // Animated Double Buffering visualization
           const bufW = 220;
@@ -781,23 +1006,45 @@
           ctx.arc(rx + 240 + pProg * 40, bufY + bufH / 2, 5, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = "#94a3b8";
+          ctx.fillStyle = "#cbd5e1";
           ctx.font = "11px sans-serif";
-          ctx.fillText("Concurrency: CPU processes Buffer A while Disk Controller fills Buffer B.", rx + 20, 580);
-          ctx.fillText("RAID 0/5 Striping distributes blocks across independent arms to multiply bandwidth.", rx + 20, 600);
+          ctx.fillText("Concurrency: CPU processes Buffer A while Disk Controller fills Buffer B concurrently.", rx + 20, 580);
+          ctx.fillText("RAID 0/5 Striping distributes blocks across independent arms to multiply bandwidth.", rx + 20, 602);
+          ctx.fillStyle = "#facc15";
+          ctx.fillText("Result: Eliminates idle CPU stall waiting for mechanical disk block transfers.", rx + 20, 624);
 
-          // Active Voice Spotlight Calibration
-          if (t >= 0 && t < 14) {
-            drawSpotlightHighlight(ctx, 40, 60, 580, 560, "#0ea5e9", "SECONDARY STORAGE & DISK PACK", t);
+          // ========================================================
+          // SPEECH-SYNCHRONIZED ACTIVE SPOTLIGHTS
+          // ========================================================
+          if (t >= 0 && t < 12.9) {
+            drawSpotlightHighlight(ctx, 35, 30, 595, 645, "#0ea5e9", "SECONDARY STORAGE & DISK PACK", t);
             updateHUDTopic("Physical Disk Assembly");
-          } else if (t >= 14 && t < 28) {
-            drawSpotlightHighlight(ctx, rx, 40, rw, 100, "#38bdf8", "CYLINDERS & 3-PART ADDRESSING", t);
+          } else if (t >= 12.9 && t < 19.5) {
+            drawSpotlightHighlight(ctx, 35, 30, 595, 460, "#0ea5e9", "ROTATING MAGNETIC PLATTER", t);
+            updateHUDTopic("Rotating Platters");
+          } else if (t >= 19.5 && t < 21.7) {
+            // "organized into concentric circles called tracks"
+            drawSpotlightHighlight(ctx, 35, 505, 142, 170, "#38bdf8", "CONCENTRIC CIRCLES = TRACKS", t);
+            updateHUDTopic("Concentric Tracks");
+          } else if (t >= 21.7 && t < 25.0) {
+            // "and subdivided into fixed-size arcs called sectors"
+            drawSpotlightHighlight(ctx, 335, 505, 142, 170, "#facc15", "FIXED-SIZE ARCS = SECTORS", t);
+            updateHUDTopic("Track Sectors (Blocks)");
+          } else if (t >= 25.0 && t < 29.8) {
+            // "All tracks at the same radius across all recording surfaces form a cylinder"
+            drawSpotlightHighlight(ctx, rx, 35, rw, 95, "#38bdf8", "CYLINDER = IDENTICAL RADIUS TRACKS", t);
+            updateHUDTopic("Cylinder Geometry");
+          } else if (t >= 29.8 && t < 39.0) {
+            // 3-part address
+            drawSpotlightHighlight(ctx, rx, 35, rw, 95, "#38bdf8", "ADDRESS = (SURFACE, TRACK, SECTOR)", t);
             updateHUDTopic("Block Address (S, T, S)");
-          } else if (t >= 28 && t < 48) {
-            drawSpotlightHighlight(ctx, rx, 160, rw, 270, "#facc15", "MECHANICAL ACCESS LATENCY", t);
+          } else if (t >= 39.0 && t < 54.7) {
+            // Latency breakdown
+            drawSpotlightHighlight(ctx, rx, 142, rw, 300, "#facc15", "MECHANICAL ACCESS LATENCY", t);
             updateHUDTopic("Latency s + r/2 + b/t");
           } else {
-            drawSpotlightHighlight(ctx, rx, 450, rw, 210, "#34d399", "DOUBLE BUFFERING & RAID", t);
+            // Double buffering & RAID
+            drawSpotlightHighlight(ctx, rx, 455, rw, 220, "#34d399", "DOUBLE BUFFERING & RAID STRIPING", t);
             updateHUDTopic("Double Buffering & RAID");
           }
         }
@@ -872,28 +1119,29 @@
           ctx.fill();
           ctx.stroke();
 
-          // Record Slots R1, R2, R3, R4
-          const slotW = (blkW - 60) / 3;
+          // Record Slots R1, R2, R3
+          const fragW = 88;
+          const slotW = (blkW - 25 - fragW) / 3;
           for (let i = 0; i < 3; i++) {
+            const sx = blkX + 10 + i * (slotW + 6);
             ctx.fillStyle = "#0369a1";
             ctx.strokeStyle = "#38bdf8";
             ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.roundRect(blkX + 10 + i * (slotW + 6), blkY + 15, slotW, blkH - 30, 6);
+            ctx.roundRect(sx, blkY + 15, slotW, blkH - 30, 6);
             ctx.fill();
             ctx.stroke();
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 13px monospace";
             ctx.textAlign = "center";
-            ctx.fillText("Rec " + (i + 1), blkX + 10 + i * (slotW + 6) + slotW / 2, blkY + 55);
+            ctx.fillText("Rec " + (i + 1), sx + slotW / 2, blkY + 52);
             ctx.font = "10px sans-serif";
             ctx.fillStyle = "#bae6fd";
-            ctx.fillText("R bytes", blkX + 10 + i * (slotW + 6) + slotW / 2, blkY + 72);
+            ctx.fillText("R bytes", sx + slotW / 2, blkY + 70);
           }
 
           // Wasted Fragmentation Remainder
           const fragX = blkX + 10 + 3 * (slotW + 6);
-          const fragW = blkW - fragX + blkX - 10;
           ctx.fillStyle = "#7f1d1d";
           ctx.strokeStyle = "#ef4444";
           ctx.lineWidth = 1.5;
@@ -902,10 +1150,10 @@
           ctx.fill();
           ctx.stroke();
           ctx.fillStyle = "#fca5a5";
-          ctx.font = "bold 11px monospace";
+          ctx.font = "bold 12px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("WASTE", fragX + fragW / 2, blkY + 50);
-          ctx.font = "9px monospace";
+          ctx.fillText("WASTE", fragX + fragW / 2, blkY + 48);
+          ctx.font = "bold 10px monospace";
           ctx.fillText("W = B mod R", fragX + fragW / 2, blkY + 68);
 
           // Details List
@@ -1258,9 +1506,9 @@
 
           // B+ Tree Graphical Hierarchy
           // Level 1: Root Node
-          const rootX = w / 2 - 120;
+          const rootW = 340;
+          const rootX = (w - rootW) / 2;
           const rootY = 150;
-          const rootW = 240;
           const rootH = 50;
 
           ctx.fillStyle = "#1e1b4b";
@@ -1271,22 +1519,23 @@
           ctx.fill();
           ctx.stroke();
           ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 14px monospace";
+          ctx.font = "bold 13px monospace";
           ctx.textAlign = "center";
           ctx.fillText("Root: [ P1 | 30 | P2 | 70 | P3 ]", rootX + rootW / 2, rootY + 30);
 
           // Level 2: Internal Nodes (3 children)
           const midY = 270;
-          const midW = 190;
+          const midW = 210;
           const midH = 45;
-          const midPositions = [140, w / 2 - midW / 2, w - 140 - midW];
+          const midPositions = [130, w / 2 - midW / 2, w - 130 - midW];
 
           midPositions.forEach((mx, idx) => {
             // Branch pointer line from root
             ctx.strokeStyle = "#6366f1";
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(rootX + 40 + idx * 80, rootY + rootH);
+            const rootPtrX = rootX + 50 + idx * 120;
+            ctx.moveTo(rootPtrX, rootY + rootH);
             ctx.lineTo(mx + midW / 2, midY);
             ctx.stroke();
 
